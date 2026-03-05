@@ -403,23 +403,60 @@ def cmd_complete(args):
     print(f"Task {args.task_id} marked as done and archived to {archive}")
 
 
+def _run_cmd(cmd: list, check: bool = True) -> tuple:
+    """Run a subprocess command, return (returncode, stdout, stderr)."""
+    import subprocess
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if check and result.returncode != 0:
+            return (result.returncode, result.stdout, result.stderr)
+        return (result.returncode, result.stdout, result.stderr)
+    except FileNotFoundError:
+        return (-1, "", f"Command not found: {cmd[0]}")
+    except subprocess.TimeoutExpired:
+        return (-1, "", "Command timed out")
+
+
 def cmd_init(args):
-    """Initialize Chalkboard for multi-agent collaboration."""
+    """Initialize Chalkboard for multi-agent collaboration.
+
+    This command does everything needed in one shot:
+    1. Creates board directories
+    2. Installs the skill to all OpenClaw profiles
+    3. Installs the `bb` CLI to PATH
+    4. Configures cron jobs for automatic TODO checking
+    5. Restarts the OpenClaw gateway
+
+    After running init, just add bots to a group chat and start assigning tasks.
+    """
     agents = [a.strip() for a in args.agents.split(",") if a.strip()]
     profiles = [p.strip() for p in (args.profiles or "").split(",") if p.strip()]
     skill_source = Path(args.skill_dir or Path(__file__).resolve().parent.parent)
+    check_interval = args.interval or "2m"
 
     if not agents:
         print("Error: --agents is required (comma-separated agent names)", file=sys.stderr)
         sys.exit(1)
 
-    board_dir = _board_dir()
-    archive_dir = _archive_dir()
-    print(f"Board directory: {board_dir}")
-    print(f"Archive directory: {archive_dir}")
+    if profiles and len(profiles) != len(agents):
+        print("Error: --profiles must have the same number of entries as --agents", file=sys.stderr)
+        print(f"  Got {len(agents)} agent(s) but {len(profiles)} profile(s)", file=sys.stderr)
+        sys.exit(1)
+
+    print("=" * 60)
+    print("  Chalkboard Setup")
+    print("=" * 60)
     print()
 
-    # Determine OpenClaw workspace directories
+    # ── Step 1: Create directories ──
+    board_dir = _board_dir()
+    archive_dir = _archive_dir()
+    print(f"[1/5] Directories")
+    print(f"  Boards:  {board_dir}")
+    print(f"  Archive: {archive_dir}")
+    print()
+
+    # ── Step 2: Install skill to OpenClaw workspaces ──
     home = Path.home()
     workspaces = []
 
@@ -431,7 +468,7 @@ def cmd_init(args):
                 ws = home / f".openclaw-{profile}" / "workspace" / "skills" / "chalkboard"
             workspaces.append((profile, ws))
     else:
-        # Auto-detect: look for existing .openclaw* directories
+        # Auto-detect all .openclaw* directories
         default_ws = home / ".openclaw" / "workspace"
         if default_ws.exists():
             workspaces.append(("default", default_ws / "skills" / "chalkboard"))
@@ -440,18 +477,16 @@ def cmd_init(args):
                 profile_name = d.name.replace(".openclaw-", "")
                 workspaces.append((profile_name, d / "workspace" / "skills" / "chalkboard"))
 
+    print(f"[2/5] Installing skill to {len(workspaces)} workspace(s)")
     if not workspaces:
-        print("Warning: No OpenClaw workspaces found. Skipping skill installation.", file=sys.stderr)
+        print("  Warning: No OpenClaw workspaces found.", file=sys.stderr)
         print("  Install manually: cp -r <chalkboard-dir> ~/.openclaw/workspace/skills/chalkboard", file=sys.stderr)
     else:
         skill_files = ["SKILL.md"]
         script_files = ["scripts/board.py", "scripts/check_todos.py"]
-
-        print(f"Installing skill to {len(workspaces)} workspace(s)...")
         for profile, ws_path in workspaces:
             scripts_dir = ws_path / "scripts"
             scripts_dir.mkdir(parents=True, exist_ok=True)
-
             for f in skill_files:
                 src = skill_source / f
                 if src.exists():
@@ -460,11 +495,11 @@ def cmd_init(args):
                 src = skill_source / f
                 if src.exists():
                     shutil.copy2(str(src), str(ws_path / f))
+            print(f"  ✓ [{profile}] -> {ws_path}")
+    print()
 
-            print(f"  [{profile}] -> {ws_path}")
-        print()
-
-    # Set up bb in PATH — prefer ~/.local/bin (no sudo needed)
+    # ── Step 3: Install bb to PATH ──
+    print(f"[3/5] Installing 'bb' CLI")
     bb_src = skill_source / "bb"
     local_bin = Path.home() / ".local" / "bin"
     bb_target = local_bin / "bb"
@@ -474,50 +509,107 @@ def cmd_init(args):
             local_bin.mkdir(parents=True, exist_ok=True)
             shutil.copy2(str(bb_src), str(bb_target))
             bb_target.chmod(0o755)
-            print(f"Installed 'bb' command to {bb_target}")
-
-            # Check if ~/.local/bin is in PATH
+            print(f"  ✓ Installed to {bb_target}")
             path_dirs = os.environ.get("PATH", "").split(os.pathsep)
             if str(local_bin) not in path_dirs:
-                print(f"  Note: Add to your shell profile:")
+                print(f"  ⚠ Add to your shell profile:")
                 print(f'    export PATH="$HOME/.local/bin:$PATH"')
         except OSError as e:
-            print(f"Note: Could not install 'bb' to {bb_target}: {e}")
-            print(f"  Run manually: cp {bb_src} {bb_target} && chmod +x {bb_target}")
+            print(f"  ✗ Could not install: {e}")
+            print(f"    Run manually: cp {bb_src} {bb_target} && chmod +x {bb_target}")
     elif bb_target.exists():
-        print(f"'bb' command already exists at {bb_target}")
+        print(f"  ✓ Already installed at {bb_target}")
+    else:
+        print(f"  - Skipped (bb script not found in source)")
     print()
 
-    # Print cron setup instructions
-    print("Cron setup (add to each OpenClaw instance):")
-    print("=" * 60)
-    for i, agent in enumerate(agents):
-        profile_flag = ""
-        if i < len(profiles) and profiles[i] != "default":
-            profile_flag = f" --profile {profiles[i]}"
-        elif i > 0 and not profiles:
-            profile_flag = f" --profile <profile-name>"
+    # ── Step 4: Configure cron jobs ──
+    print(f"[4/5] Configuring cron jobs (check every {check_interval})")
 
-        print(f"  openclaw{profile_flag} cron add \\")
-        print(f'    --name "board-check" --every 2m \\')
-        print(f'    --message "Check Chalkboard for pending TODOs. Run: bb my-todos --agent {agent}" \\')
-        print(f"    --announce")
-        print()
+    # Check if openclaw CLI is available
+    rc, _, _ = _run_cmd(["openclaw", "--version"], check=False)
+    if rc != 0:
+        print("  ⚠ 'openclaw' CLI not found. Skipping cron setup.")
+        print("  You can add cron jobs manually later:")
+        for i, agent in enumerate(agents):
+            profile = profiles[i] if i < len(profiles) else "default"
+            pflag = "" if profile == "default" else f" --profile {profile}"
+            print(f'    openclaw{pflag} cron add --name "chalkboard-{agent}" --every {check_interval} \\')
+            print(f'      --message "Check Chalkboard for pending TODOs assigned to you. Run: python3 {skill_source}/scripts/check_todos.py {agent}" \\')
+            print(f'      --announce')
+    else:
+        for i, agent in enumerate(agents):
+            profile = profiles[i] if i < len(profiles) else "default"
+            pflag = [] if profile == "default" else ["--profile", profile]
+            cron_name = f"chalkboard-{agent}"
 
-    # Print summary
-    print("=" * 60)
-    print("Setup complete!")
+            # Check if cron already exists
+            rc, stdout, _ = _run_cmd(["openclaw"] + pflag + ["cron", "list"], check=False)
+            if cron_name in stdout:
+                print(f"  ✓ [{profile}/{agent}] Cron '{cron_name}' already exists")
+                continue
+
+            # Add cron job
+            check_script = str(skill_source / "scripts" / "check_todos.py")
+            message = (
+                f"You have a Chalkboard cron check. "
+                f"Run this to see your pending TODOs: "
+                f"python3 {check_script} {agent}\n"
+                f"If there are pending TODOs, read the task board with bb read <task-id>, "
+                f"do the work, log your results with bb log, and mark TODOs done. "
+                f"If no pending TODOs, reply HEARTBEAT_OK."
+            )
+
+            cmd = (
+                ["openclaw"] + pflag +
+                [
+                    "cron", "add",
+                    "--name", cron_name,
+                    "--every", check_interval,
+                    "--message", message,
+                    "--announce",
+                ]
+            )
+
+            rc, stdout, stderr = _run_cmd(cmd, check=False)
+            if rc == 0:
+                print(f"  ✓ [{profile}/{agent}] Cron '{cron_name}' added (every {check_interval})")
+            else:
+                print(f"  ✗ [{profile}/{agent}] Failed to add cron: {stderr.strip()}")
     print()
-    print(f"  Agents:     {', '.join(agents)}")
+
+    # ── Step 5: Restart gateway ──
+    print(f"[5/5] Restarting OpenClaw gateway")
+    rc, stdout, stderr = _run_cmd(["openclaw", "gateway", "restart"], check=False)
+    if rc == 0:
+        print(f"  ✓ Gateway restarted")
+    elif rc == -1:
+        print(f"  ⚠ Could not restart: {stderr.strip()}")
+        print(f"    Run manually: openclaw gateway restart")
+    else:
+        # Might just need a moment
+        print(f"  ⚠ {stderr.strip() or stdout.strip()}")
+        print(f"    You may need to run: openclaw gateway restart")
+    print()
+
+    # ── Summary ──
+    print("=" * 60)
+    print("  Setup complete!")
+    print("=" * 60)
+    print()
+    print(f"  Agents:     {', '.join(f'{a} ({profiles[i] if i < len(profiles) else 'auto'})' for i, a in enumerate(agents))}")
     print(f"  Boards:     {board_dir}")
     print(f"  Archive:    {archive_dir}")
+    print(f"  Cron:       every {check_interval}")
     if workspaces:
         print(f"  Workspaces: {len(workspaces)} installed")
     print()
-    print("Next steps:")
-    print("  1. Run the cron commands above for each instance")
-    print("  2. Send /restart in each bot's chat to load the skill")
-    print(f'  3. Tell any bot: "Create a task on Chalkboard"')
+    print("  What to do now:")
+    print("  1. Add your bots to a group chat")
+    print("  2. Tell them: \"Research X — agent-a does research, agent-b reviews\"")
+    print("  3. They'll coordinate automatically through Chalkboard")
+    print()
+    print("  That's it. No further setup needed.")
 
 
 def cmd_my_todos(args):
@@ -604,9 +696,10 @@ def main():
     p_mytodos.add_argument("--agent", required=True, help="Agent name")
 
     # init
-    p_init = sub.add_parser("init", help="Initialize Chalkboard for multi-agent collaboration")
-    p_init.add_argument("--agents", required=True, help="Comma-separated agent names")
-    p_init.add_argument("--profiles", default="", help="Comma-separated OpenClaw profiles")
+    p_init = sub.add_parser("init", help="Set up Chalkboard (one command, fully automatic)")
+    p_init.add_argument("--agents", required=True, help="Comma-separated agent names (e.g. potato,kabishou)")
+    p_init.add_argument("--profiles", default="", help="Comma-separated OpenClaw profiles matching agents (e.g. alpha2,default)")
+    p_init.add_argument("--interval", default="2m", help="Cron check interval (default: 2m)")
     p_init.add_argument("--skill-dir", default="", help="Path to Chalkboard source directory (auto-detected)")
 
     args = parser.parse_args()

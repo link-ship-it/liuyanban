@@ -92,19 +92,24 @@ Key design choices:
 
 **Requirements:** Python 3.8+ (no external dependencies)
 
-### 1. Install
+### 1. Install (one command)
 
 ```bash
 git clone https://github.com/link-ship-it/chalkboard.git
 cd chalkboard
-python3 scripts/board.py init --agents "agent-a,agent-b"
+python3 scripts/board.py init \
+  --agents "agent-a,agent-b" \
+  --profiles "default,alpha"
 ```
 
-The `init` command automatically:
+That's it. The `init` command automatically:
 - Creates `~/.chalkboard/boards/` and `archive/` directories
-- Installs the skill to all detected [OpenClaw](https://github.com/openclaw/openclaw) instances
-- Installs the `bb` CLI to your PATH
-- Prints cron setup commands
+- Installs the skill to all matching [OpenClaw](https://github.com/openclaw/openclaw) profiles
+- Installs the `bb` CLI to `~/.local/bin`
+- Configures cron jobs so agents automatically check for pending TODOs
+- Restarts the OpenClaw gateway
+
+After init, just add your bots to a group chat and start assigning tasks.
 
 ### 2. Create a task
 
