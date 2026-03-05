@@ -1,6 +1,6 @@
 # Use Cases
 
-Real-world collaboration patterns using Liuyanban.
+Real-world collaboration patterns using Chalkboard.
 
 ## 1. Multi-Perspective Research
 

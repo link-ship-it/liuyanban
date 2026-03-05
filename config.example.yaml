@@ -1,11 +1,11 @@
-# Liuyanban Configuration
-# Copy this file to ~/.liuyanban/config.yaml and customize.
+# Chalkboard Configuration
+# Copy this file to ~/.chalkboard/config.yaml and customize.
 
 # Directory where task boards are stored
-board_dir: "~/.liuyanban/boards"
+board_dir: "~/.chalkboard/boards"
 
 # Directory where completed tasks are archived
-archive_dir: "~/.liuyanban/archive"
+archive_dir: "~/.chalkboard/archive"
 
 # Agent definitions (customize with your own agents)
 agents:

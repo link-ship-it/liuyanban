@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Liuyanban CLI — Multi-agent collaboration through shared Markdown files.
+Chalkboard CLI — Multi-agent collaboration through shared Markdown files.
 
 Commands:
   create    Create a new task board
@@ -75,20 +75,20 @@ except ImportError:
 
 # ── Configuration ────────────────────────────────────────────────────────
 
-DEFAULT_BOARD_DIR = os.path.expanduser("~/.liuyanban/boards")
-DEFAULT_ARCHIVE_DIR = os.path.expanduser("~/.liuyanban/archive")
+DEFAULT_BOARD_DIR = os.path.expanduser("~/.chalkboard/boards")
+DEFAULT_ARCHIVE_DIR = os.path.expanduser("~/.chalkboard/archive")
 
 
 def _board_dir() -> Path:
     """Return the boards directory, creating it if needed."""
-    p = Path(os.environ.get("LIUYANBAN_BOARD_DIR", DEFAULT_BOARD_DIR))
+    p = Path(os.environ.get("CHALKBOARD_BOARD_DIR", DEFAULT_BOARD_DIR))
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def _archive_dir() -> Path:
     """Return the archive directory, creating it if needed."""
-    p = Path(os.environ.get("LIUYANBAN_ARCHIVE_DIR", DEFAULT_ARCHIVE_DIR))
+    p = Path(os.environ.get("CHALKBOARD_ARCHIVE_DIR", DEFAULT_ARCHIVE_DIR))
     p.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -407,7 +407,7 @@ def cmd_complete(args):
 
 
 def cmd_init(args):
-    """Initialize liuyanban for multi-agent collaboration."""
+    """Initialize chalkboard for multi-agent collaboration."""
     agents = [a.strip() for a in args.agents.split(",") if a.strip()]
     profiles = [p.strip() for p in (args.profiles or "").split(",") if p.strip()]
     skill_source = Path(args.skill_dir or Path(__file__).resolve().parent.parent)
@@ -429,23 +429,23 @@ def cmd_init(args):
     if profiles:
         for profile in profiles:
             if profile == "default":
-                ws = home / ".openclaw" / "workspace" / "skills" / "liuyanban"
+                ws = home / ".openclaw" / "workspace" / "skills" / "chalkboard"
             else:
-                ws = home / f".openclaw-{profile}" / "workspace" / "skills" / "liuyanban"
+                ws = home / f".openclaw-{profile}" / "workspace" / "skills" / "chalkboard"
             workspaces.append((profile, ws))
     else:
         # Auto-detect: look for existing .openclaw* directories
         default_ws = home / ".openclaw" / "workspace"
         if default_ws.exists():
-            workspaces.append(("default", default_ws / "skills" / "liuyanban"))
+            workspaces.append(("default", default_ws / "skills" / "chalkboard"))
         for d in sorted(home.glob(".openclaw-*")):
             if (d / "workspace").exists():
                 profile_name = d.name.replace(".openclaw-", "")
-                workspaces.append((profile_name, d / "workspace" / "skills" / "liuyanban"))
+                workspaces.append((profile_name, d / "workspace" / "skills" / "chalkboard"))
 
     if not workspaces:
         print("Warning: No OpenClaw workspaces found. Skipping skill installation.", file=sys.stderr)
-        print("  Install manually: cp -r <liuyanban-dir> ~/.openclaw/workspace/skills/liuyanban", file=sys.stderr)
+        print("  Install manually: cp -r <chalkboard-dir> ~/.openclaw/workspace/skills/chalkboard", file=sys.stderr)
     else:
         skill_files = ["SKILL.md"]
         script_files = ["scripts/board.py", "scripts/check_todos.py"]
@@ -546,7 +546,7 @@ def cmd_my_todos(args):
 def main():
     parser = argparse.ArgumentParser(
         prog="bb",
-        description="Liuyanban — Multi-agent collaboration via shared Markdown files",
+        description="Chalkboard — Multi-agent collaboration via shared Markdown files",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -595,10 +595,10 @@ def main():
     p_mytodos.add_argument("--agent", required=True, help="Agent name")
 
     # init
-    p_init = sub.add_parser("init", help="Initialize liuyanban for multi-agent collaboration")
+    p_init = sub.add_parser("init", help="Initialize chalkboard for multi-agent collaboration")
     p_init.add_argument("--agents", required=True, help="Comma-separated agent names (e.g. researcher,writer,reviewer)")
     p_init.add_argument("--profiles", default="", help="Comma-separated OpenClaw profiles (e.g. default,alpha,alpha2)")
-    p_init.add_argument("--skill-dir", default="", help="Path to liuyanban source directory (auto-detected)")
+    p_init.add_argument("--skill-dir", default="", help="Path to chalkboard source directory (auto-detected)")
 
     args = parser.parse_args()
 

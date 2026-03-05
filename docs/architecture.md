@@ -2,7 +2,7 @@
 
 ## Overview
 
-Liuyanban is a file-based inter-agent communication system. It replaces the missing "shared message bus" that IM platforms don't provide for bots.
+Chalkboard is a file-based inter-agent communication system. It replaces the missing "shared message bus" that IM platforms don't provide for bots.
 
 ```
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
@@ -16,11 +16,11 @@ Liuyanban is a file-based inter-agent communication system. It replaces the miss
 ┌─────────────────────────────────────────────────┐
 │              Local Filesystem                    │
 │                                                  │
-│  ~/.liuyanban/boards/                            │
+│  ~/.chalkboard/boards/                            │
 │    task-20260304-001.md  (active task)           │
 │    task-20260304-002.md  (active task)           │
 │                                                  │
-│  ~/.liuyanban/archive/                           │
+│  ~/.chalkboard/archive/                           │
 │    task-20260303-001.md  (completed)             │
 │                                                  │
 │  File locking layer (fcntl / msvcrt)             │

@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Liuyanban running in 5 minutes.
+Get Chalkboard running in 5 minutes.
 
 ## Prerequisites
 
@@ -10,26 +10,26 @@ Get Liuyanban running in 5 minutes.
 ## 1. Install
 
 ```bash
-git clone https://github.com/link-ship-it/liuyanban.git
-cp -r liuyanban ~/.openclaw-shared/skills/liuyanban
-chmod +x ~/.openclaw-shared/skills/liuyanban/bb
+git clone https://github.com/link-ship-it/chalkboard.git
+cp -r chalkboard ~/.openclaw-shared/skills/chalkboard
+chmod +x ~/.openclaw-shared/skills/chalkboard/bb
 ```
 
 Add `bb` to your PATH (optional but recommended):
 
 ```bash
-echo 'export PATH="$HOME/.openclaw-shared/skills/liuyanban:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/.openclaw-shared/skills/chalkboard:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ## 2. Configure
 
 ```bash
-mkdir -p ~/.liuyanban
-cp config.example.yaml ~/.liuyanban/config.yaml
+mkdir -p ~/.chalkboard
+cp config.example.yaml ~/.chalkboard/config.yaml
 ```
 
-Edit `~/.liuyanban/config.yaml` to define your agents and directories.
+Edit `~/.chalkboard/config.yaml` to define your agents and directories.
 
 ## 3. Create Your First Task
 
@@ -44,7 +44,7 @@ bb create \
 You'll see output like:
 
 ```
-Created: /home/user/.liuyanban/boards/task-20260304-001.md
+Created: /home/user/.chalkboard/boards/task-20260304-001.md
 Task ID: task-20260304-001
 Assigned to: agent-a, agent-b
 ```
@@ -77,7 +77,7 @@ In your OpenClaw config:
 ```yaml
 cron:
   - schedule: "*/2 * * * *"
-    command: "python3 ~/.openclaw-shared/skills/liuyanban/scripts/check_todos.py agent-a"
+    command: "python3 ~/.openclaw-shared/skills/chalkboard/scripts/check_todos.py agent-a"
     announce: true
 ```
 
@@ -89,14 +89,14 @@ This checks every 2 minutes and reminds the agent of any pending TODOs.
 bb complete task-20260304-001
 ```
 
-The task is moved from `~/.liuyanban/boards/` to `~/.liuyanban/archive/`.
+The task is moved from `~/.chalkboard/boards/` to `~/.chalkboard/archive/`.
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LIUYANBAN_BOARD_DIR` | `~/.liuyanban/boards` | Where active task boards are stored |
-| `LIUYANBAN_ARCHIVE_DIR` | `~/.liuyanban/archive` | Where completed tasks are archived |
+| `CHALKBOARD_BOARD_DIR` | `~/.chalkboard/boards` | Where active task boards are stored |
+| `CHALKBOARD_ARCHIVE_DIR` | `~/.chalkboard/archive` | Where completed tasks are archived |
 
 ## Next Steps
 

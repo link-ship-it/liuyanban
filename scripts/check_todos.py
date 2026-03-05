@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cron script for Liuyanban.
+Cron script for Chalkboard.
 Checks for pending TODOs assigned to a specific agent.
 Outputs a message suitable for OpenClaw cron --announce delivery.
 """
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 BOARD_DIR = Path(
-    os.environ.get("LIUYANBAN_BOARD_DIR", os.path.expanduser("~/.liuyanban/boards"))
+    os.environ.get("CHALKBOARD_BOARD_DIR", os.path.expanduser("~/.chalkboard/boards"))
 )
 
 

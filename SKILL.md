@@ -1,10 +1,10 @@
 ---
-name: liuyanban
-description: "Multi-agent collaboration via shared Markdown files. USE WHEN: user asks multiple agents to work together, requests collaboration between bots, mentions 'bulletin board' or 'liuyanban', assigns a complex task that benefits from multiple perspectives, or when you see a cron reminder about pending TODOs. DON'T USE WHEN: simple single-agent tasks, casual chat, or when the user explicitly wants only you to handle something."
+name: chalkboard
+description: "Multi-agent collaboration via shared Markdown files. USE WHEN: user asks multiple agents to work together, requests collaboration between bots, mentions 'bulletin board' or 'chalkboard', assigns a complex task that benefits from multiple perspectives, or when you see a cron reminder about pending TODOs. DON'T USE WHEN: simple single-agent tasks, casual chat, or when the user explicitly wants only you to handle something."
 user-invocable: true
 ---
 
-# Liuyanban — Multi-Agent Collaboration
+# Chalkboard — Multi-Agent Collaboration
 
 Enables multiple OpenClaw agents to collaborate on tasks through shared Markdown files on the local filesystem. Since IM platforms prevent bots from seeing each other's messages, this skill uses files as the shared communication layer.
 
