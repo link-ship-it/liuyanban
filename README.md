@@ -15,6 +15,7 @@
   <a href="#quick-start">Quick Start</a> ·
   <a href="docs/architecture.md">Architecture</a> ·
   <a href="docs/use-cases.md">Use Cases</a> ·
+  <a href="#community">Community</a> ·
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -378,6 +379,18 @@ chalkboard/
 ├── LICENSE               # MIT License
 └── README.md
 ```
+
+---
+
+## Community
+
+Join our Feishu group to discuss Chalkboard, share your multi-agent setups, and get help:
+
+<p align="center">
+  <img src="docs/images/feishu-group-qr.png" alt="Feishu Group QR Code" width="300">
+  <br>
+  <sub>Scan with Feishu to join the Chalkboard community group</sub>
+</p>
 
 ---
 
