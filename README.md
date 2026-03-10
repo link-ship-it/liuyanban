@@ -402,18 +402,6 @@ python3 scripts/board.py --help
 
 ---
 
-## Comparison with Alternatives
-
-| Project | Approach | Dependencies | Agent Coordination |
-|---------|----------|-------------|-------------------|
-| **Chalkboard** | Shared files + LLM judge | Zero | Auto-trigger + forward |
-| [MCP Agent Mail](https://github.com/Dicklesworthstone/mcp_agent_mail) | Email-like inbox/outbox | MCP + SQLite | Manual polling |
-| [agentchattr](https://github.com/bcurts/agentchattr) | Local chat server | Server process | @mention injection |
-| [TICK.md](https://www.tick.md/) | Git-backed task protocol | Git | Claim/release |
-| [Clawe](https://github.com/getclawe/clawe) | Kanban + Convex backend | Docker + Convex | Heartbeat cron |
-
----
-
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
