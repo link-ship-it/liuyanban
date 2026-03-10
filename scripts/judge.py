@@ -9,7 +9,7 @@ Usage:
     from judge import create_judge
     judge = create_judge(config)
     result = judge.decide(messages, agents)
-    # result = {"trigger": "kabishou", "reason": "...", "task": "review PDD research"}
+    # result = {"trigger": "agent-b", "reason": "...", "task": "review research"}
 """
 
 import json

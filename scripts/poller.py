@@ -82,62 +82,6 @@ def _trim_context(group_id: str, max_lines: int = 100):
         path.write_text("\n".join(lines[-max_lines:]) + "\n", encoding="utf-8")
 
 
-def _parse_feishu_content(content_raw: str) -> str:
-    """Parse Feishu rich text content into plain text with @mentions preserved."""
-    try:
-        obj = json.loads(content_raw)
-    except (json.JSONDecodeError, TypeError):
-        return content_raw
-
-    if isinstance(obj, str):
-        return obj
-
-    # Simple text message: {"text": "hello"}
-    if "text" in obj and isinstance(obj["text"], str):
-        return obj["text"]
-
-    # Rich text / post: {"title": "...", "content": [[{tag, text}, ...]]}
-    parts = []
-    content_blocks = obj.get("content", [])
-    if isinstance(content_blocks, list):
-        for block in content_blocks:
-            if isinstance(block, list):
-                for elem in block:
-                    if isinstance(elem, dict):
-                        tag = elem.get("tag", "")
-                        if tag == "text":
-                            parts.append(elem.get("text", ""))
-                        elif tag == "at":
-                            user_name = elem.get("user_name", elem.get("user_id", ""))
-                            parts.append(f"@{user_name}")
-                        elif tag == "a":
-                            parts.append(elem.get("text", elem.get("href", "")))
-            elif isinstance(block, dict):
-                tag = block.get("tag", "")
-                if tag == "text":
-                    parts.append(block.get("text", ""))
-
-    # Card / interactive message: {"elements": [...]}
-    elements = obj.get("elements", [])
-    if isinstance(elements, list):
-        for block in elements:
-            if isinstance(block, list):
-                for elem in block:
-                    if isinstance(elem, dict):
-                        tag = elem.get("tag", "")
-                        if tag == "text":
-                            parts.append(elem.get("text", ""))
-                        elif tag == "at":
-                            parts.append(f"@{elem.get('user_name', '')}")
-            elif isinstance(block, dict):
-                tag = block.get("tag", "")
-                if tag == "text":
-                    parts.append(block.get("text", ""))
-
-    result = "".join(parts).strip()
-    return result if result else content_raw
-
-
 # ── Feishu Provider ──────────────────────────────────────────────────────
 
 
@@ -206,7 +150,11 @@ class FeishuProvider:
 
             body = item.get("body", {})
             content_raw = body.get("content", "{}")
-            text = _parse_feishu_content(content_raw)
+            try:
+                content_obj = json.loads(content_raw)
+                text = content_obj.get("text", content_raw)
+            except json.JSONDecodeError:
+                text = content_raw
 
             create_time = item.get("create_time", "0")
             try:

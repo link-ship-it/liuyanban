@@ -230,17 +230,6 @@ def run_decisions(config: dict):
         if not messages:
             continue
 
-        has_new = _has_new_messages(messages, state, group_id)
-
-        # Update last seen message
-        if messages:
-            if "last_seen_msg_id" not in state:
-                state["last_seen_msg_id"] = {}
-            state["last_seen_msg_id"][group_id] = messages[-1].get("msg_id", "")
-
-        if not has_new:
-            continue
-
         context_str = _format_context(messages)
         triggered = False
 
