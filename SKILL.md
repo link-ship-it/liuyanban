@@ -72,7 +72,7 @@ Example handoff:
 ### 5. Keep the user in the loop naturally
 
 - Don't report status like a machine ("Task 67% complete")
-- Instead: "提纲和初稿都搞定了，你看看这个方向行不行？要调整我们再改。"
+- Instead: "Outline and first draft are done — take a look and let me know if this direction works. Happy to adjust."
 - Tag the user when there's something they need to decide or review
 
 ## Board Rules

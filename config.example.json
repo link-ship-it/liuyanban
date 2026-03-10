@@ -1,0 +1,34 @@
+{
+  "groups": {
+    "oc_your_group_id": {
+      "provider": "feishu",
+      "poll_interval": 5,
+      "agents": [
+        {
+          "name": "alice",
+          "profile": "default",
+          "session_id": "auto-discovered-by-bb-init",
+          "aliases": ["Alice", "Agent A"]
+        },
+        {
+          "name": "bob",
+          "profile": "alpha",
+          "session_id": "auto-discovered-by-bb-init",
+          "aliases": ["Bob", "Agent B"]
+        }
+      ]
+    }
+  },
+  "feishu": {
+    "app_id": "cli_your_app_id",
+    "app_secret": "your_app_secret"
+  },
+  "telegram": {
+    "bot_token": "your_telegram_bot_token"
+  },
+  "judge": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250514",
+    "api_key_env": "ANTHROPIC_API_KEY"
+  }
+}

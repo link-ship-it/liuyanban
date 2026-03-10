@@ -6,7 +6,7 @@ Supports Feishu and Telegram. Stores messages in append-only JSONL files
 so all agents can see the full conversation (including other bots' messages).
 
 Usage:
-  python3 poller.py --config ~/.chalkboard/config.yaml
+  python3 poller.py --config ~/.chalkboard/config.json
   python3 poller.py --provider feishu --group oc_xxx --app-id cli_xxx --app-secret xxx
 """
 

@@ -11,3 +11,8 @@ dist/
 build/
 *.egg-info/
 .bb_*.tmp
+config.json
+config.yaml
+*.log
+daemon.log
+daemon.err.log

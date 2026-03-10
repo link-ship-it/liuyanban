@@ -26,10 +26,12 @@ source ~/.zshrc
 
 ```bash
 mkdir -p ~/.chalkboard
-cp config.example.yaml ~/.chalkboard/config.yaml
+cp config.example.yaml ~/.chalkboard/config.yaml   # Board settings (optional)
 ```
 
 Edit `~/.chalkboard/config.yaml` to define your agents and directories.
+
+> **Note**: The board config (`config.yaml`) is for standalone CLI usage. If you use the daemon (`bb init`), it generates a separate `config.json` with group chat, poller, and LLM judge settings. See the main [README](../README.md#configuration) for details.
 
 ## 3. Create Your First Task
 

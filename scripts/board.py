@@ -224,28 +224,35 @@ def _locked_write(path: Path, content: str):
             os.fsync(f.fileno())
         os.replace(tmp_path, str(path))
     except Exception:
-        # Clean up temp file on failure
         try:
-            os.unlink(tmp_path)
-        except OSError:
+            os.unlink(tmp_path)  # type: ignore[possibly-undefined]
+        except (OSError, UnboundLocalError):
             pass
         raise
 
 
 def _locked_modify(path: Path, modifier_fn):
-    """Read-modify-write a file under a single exclusive lock (prevents TOCTOU).
-    
-    modifier_fn receives the current content string and must return the new content.
-    """
+    """Read-modify-write a file atomically under an exclusive lock."""
     with open(path, "r+", encoding="utf-8") as f:
         _lock_exclusive(f)
         try:
             content = f.read()
             new_content = modifier_fn(content)
-            f.seek(0)
-            f.truncate()
-            f.write(new_content)
-            f.flush()
+            fd, tmp_path = tempfile.mkstemp(
+                dir=str(path.parent), suffix=".tmp", prefix=".bb_"
+            )
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as tmp_f:
+                    tmp_f.write(new_content)
+                    tmp_f.flush()
+                    os.fsync(tmp_f.fileno())
+                os.replace(tmp_path, str(path))
+            except Exception:
+                try:
+                    os.unlink(tmp_path)
+                except (OSError, UnboundLocalError):
+                    pass
+                raise
         finally:
             _unlock(f)
 
@@ -927,7 +934,7 @@ def cmd_init(args):
     daemon_lines = [
         "#!/bin/bash",
         f'export HOME="{home}"',
-        f'export PATH="$HOME/.nvm/versions/node/v22.22.0/bin:$HOME/.local/bin:/usr/local/bin:$PATH"',
+        'export PATH="$([ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1 && dirname "$(nvm which current 2>/dev/null)" 2>/dev/null || echo "$HOME/.nvm/versions/node/current/bin"):$HOME/.local/bin:/usr/local/bin:$PATH"',
         "",
         f'CONFIG="{config_path}"',
         f'SCRIPTS="{script_dir}"',
